@@ -26,9 +26,8 @@ public class EventController {
         // created를 보낼 때 항상 URI가 있어야 함.
         // HATEOS가 제공하는 linkTo(), methodOn() 사용해서 URI를 생성 후 return.
         //@RequestMapping 하여 methodOn 제거
-        URI createdUri = linkTo(EventController.class).slash(event.getId()).toUri();
+        URI createdUri = linkTo(EventController.class).slash(newEvent.getId()).toUri();
         //createdUri = http://localhost/api/events/%7Bid%7D
-//        event.setId(10);
         return ResponseEntity.created(createdUri).body(event);
     }
 }
