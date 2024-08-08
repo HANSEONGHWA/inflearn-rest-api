@@ -1,7 +1,7 @@
 package com.example.demo.event;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,17 +17,15 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class EventController {
 
     private final EventRepository eventRepository;
+    private final ModelMapper modelMapper;
 
 
 
     @PostMapping
-    public ResponseEntity createEvent(@RequestBody Event event){
+    public ResponseEntity createEvent(@RequestBody EventDto eventDto){
+        Event event = modelMapper.map(eventDto, Event.class);
         Event newEvent = this.eventRepository.save(event);
-        // created를 보낼 때 항상 URI가 있어야 함.
-        // HATEOS가 제공하는 linkTo(), methodOn() 사용해서 URI를 생성 후 return.
-        //@RequestMapping 하여 methodOn 제거
         URI createdUri = linkTo(EventController.class).slash(newEvent.getId()).toUri();
-        //createdUri = http://localhost/api/events/%7Bid%7D
         return ResponseEntity.created(createdUri).body(event);
     }
 }

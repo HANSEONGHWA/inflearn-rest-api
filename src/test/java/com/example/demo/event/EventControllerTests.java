@@ -1,10 +1,13 @@
 package com.example.demo.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +20,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest // web 관련 Bean 모두 등록됨. Repository Bean 등록 안해줘 주입 받아야함.
+@SpringBootTest
+@AutoConfigureMockMvc
 public class EventControllerTests {
 
     // MockMvc 주입받아 사용, 가짜 요청을 만들어서 dispatcherServlet 에서 보내 응답을 확인할 수 있음.
@@ -28,10 +32,6 @@ public class EventControllerTests {
     //객체를 JSON으로 바꿔줌.
     @Autowired
     ObjectMapper objectMapper;
-
-    //mock객체이기 때문에 sava 된 값이 null 임. 따라서 Mockito 작성
-    @MockBean
-    EventRepository eventRepository;
 
     @Test
     public void createEvent() throws Exception {
@@ -47,10 +47,10 @@ public class EventControllerTests {
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .location("강남역 스터디 카페")
+                .free(true)
+                .offline(false)
+                .eventStatus(EventStatus.PUBLISHED)
                 .build();
-        event.setId(10);
-        // eventRepository.save(event)가 실행되면 event객체를 return.
-        Mockito.when(eventRepository.save(event)).thenReturn(event);
 
         mockMvc.perform(post("/api/events")
                         .contentType(MediaType.APPLICATION_JSON) // request contentType
@@ -60,6 +60,10 @@ public class EventControllerTests {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE));
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("id").value(Matchers.not(100)))
+                .andExpect(jsonPath("free").value(Matchers.not(true)))
+                .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
+        ;
     }
 }

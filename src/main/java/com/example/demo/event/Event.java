@@ -29,5 +29,5 @@ public class Event {
     private boolean offline;
     private boolean free; //유료 무료 여부
     @Enumerated(EnumType.STRING)
-    private EventStatus eventStatus;
+    private EventStatus eventStatus = EventStatus.DRAFT;
 }
